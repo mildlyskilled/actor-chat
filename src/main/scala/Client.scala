@@ -13,9 +13,11 @@ object ChatClient{
 	* Argument 3 is client name
 	*/
 	def main(args:Array[String]){
+		print("Identify yourself: ")
+		val clientId = readLine()
 		val peer = Node("localhost", 2552)
 		val client = new ClientActor(peer);
-		client.setId("nana")
+		client.setId(clientId)
 		client.start()
 	}
 	
@@ -24,9 +26,10 @@ object ChatClient{
 
 class ClientActor(peer:Node) extends Actor{
 
+	RemoteActor.classLoader = getClass().getClassLoader()
 	var id:String = "client"
 	def setId(id: String) = {this.id = id}
-	def getId = this.id
+	def getId:String = this.id
 
 	def act() {
 		alive(2552)//@TODO: make this a param
@@ -38,17 +41,28 @@ class ClientActor(peer:Node) extends Actor{
 			print(">> ")
 			val cinput = readLine()
 			if(cinput != null){
-				var mymessage = cinput
-				server ! mymessage
+				cinput match {
+					case "disconnect" => {
+						println(getId + " disconnecting...")
+						unlink(server)
+					}
+
+					case "connect" => {
+						println(getId + " connecting...")
+						link(server)
+					}
+
+					case "exit" => {
+						unlink(server)
+						exit()
+					}
+
+					case _ => server ! new ChatMessage(getId, cinput)
+				}
 
 				receive {
-					case (x: String) => {
-						if(x == "exit"){
-							println("Closing thread...")
-							unlink(server)
-							exit()
-						}
-						println("From Server: "+x)
+					case ChatMessage(c:String, x: String) => {
+						println("From "+c+": "+x)
 					}
 
 					case ChatInfo(x:String) => {

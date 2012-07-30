@@ -14,7 +14,7 @@ object ChatServer extends App{
 }
 
 class ServerActor() extends Actor{
-
+	RemoteActor.classLoader = getClass().getClassLoader()
 	val connectedClients:Set[String] = Set()
 
 	def getClients = { this.connectedClients }
@@ -35,13 +35,8 @@ class ServerActor() extends Actor{
 		println("Server is ready")
 		while(true) {
 			receive {
-				case x: String => {
-					if(x == "exit"){
-						println("Recieved exit request, remove client from connection")
-						sender ! "exit"
-					}
-
-					println("Client Message Received: "+x+" acknowledged")
+				case ChatMessage(c:String, x: String) => {
+					println("Client Message Received from "+ c + ": "+x+" acknowledged")
 					sender ! new ChatInfo("ACK")
 				}
 				case _ => println("Server received invalid message format")
