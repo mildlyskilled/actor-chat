@@ -1,20 +1,12 @@
-package kaning.actors
+package kaning
 
+import kaning.messages._
 import akka.actor.{Actor, Props, ActorSystem, ActorRef, PoisonPill}
 import collection.mutable.Set
-import kaning.messages._
-import kaning.actors._
-import com.typesafe.config.ConfigFactory
 
-object ChatServerApplication extends App{
-	println("Starting Akka Chat Server Actor") 
-	val system = ActorSystem("ChatServerApplication", ConfigFactory.load.getConfig("chatserver"))
-	val server = system.actorOf(Props[ChatServerActor], name = "chatserver")
-	server ! StartUp
-}
+class ChatServer extends Actor {
 
-class ChatServerActor extends Actor {
-
+  println("Started Chat Server")
 	val connectedClients:Set[ActorRef] = Set()
 
 	def receive = {

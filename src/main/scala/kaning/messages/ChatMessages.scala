@@ -1,7 +1,6 @@
 package kaning.messages
 
 import akka.actor.{ActorRef}
-import kaning.actors._
 import collection.mutable.Set
 
 sealed trait  Message
