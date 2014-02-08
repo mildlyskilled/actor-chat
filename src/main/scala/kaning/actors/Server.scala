@@ -19,8 +19,11 @@ class ChatServerActor extends Actor {
 
 	def receive = {
 
-		case ChatMessage(x: String) => {
+		case m @ ChatMessage(x: String) => {
 			println(sender + ": " + x)
+
+      connectedClients.foreach(_.forward(m))
+
 			sender ! new ChatInfo("ACK")
 		}
 
