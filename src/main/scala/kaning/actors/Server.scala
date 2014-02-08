@@ -22,7 +22,7 @@ class ChatServerActor extends Actor {
 		case m @ ChatMessage(x: String) => {
 			println(sender + ": " + x)
 
-      connectedClients.foreach(_.forward(m))
+      connectedClients.filter(_ != sender).foreach(_.forward(m))
 
 			sender ! new ChatInfo("ACK")
 		}
@@ -32,6 +32,10 @@ class ChatServerActor extends Actor {
   			this.connectedClients += client
   			sender ! ChatInfo("REGISTERED")
   		}
+
+    case m @ PrivateMessage(target, _) =>
+      connectedClients.filter(_.path.name.contains(target)).foreach(_.forward(m))
+      sender ! new ChatInfo("P_ACK")
 
   		case StartUp => {
   			println("Received Start Server Signal")

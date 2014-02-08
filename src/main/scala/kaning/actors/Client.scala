@@ -18,24 +18,35 @@ object ChatClientApplication {
     val serverAddress = system.settings.config.getString("actor-chat.server.address")
     val serverPort = system.settings.config.getString("actor-chat.server.port")
 		val remotePath = s"akka.tcp://AkkaChat@$serverAddress:$serverPort/user/chatserver"
-		val client = system.actorOf(Props(classOf[ChatClientActor], remotePath, identity), name = identity)
+
+    val privateMessageRegex = """^@([^\s]+) (.*)$""".r
+
+    val server = system.actorSelection(remotePath)
+
+    val client = system.actorOf(Props(classOf[ChatClientActor], remotePath, identity), name = identity)
         var chatmessage = ""
         var cursor = true
         while (cursor) {
             chatmessage = readLine()
             chatmessage match {
                 case "/list" => {
-                    client ! RegisteredClients
+                    server.tell(RegisteredClients, client)
                 }
 
                 case "/join" => {
-                    client ! Register
+                  server.tell(RegisterClientMessage(client), client)
+//                    client ! Register
                 }
 
                 case "/exit" => {
-                    client ! Disconnect
+                  server.tell(Unregister(client), client)
+//                    client ! Disconnect
                     cursor = false
                 }
+
+                case privateMessageRegex(target, msg) =>
+                  server.tell(PrivateMessage(target, msg), client)
+
                 case _ => client ! Broadcast(chatmessage)
             } 
         }
@@ -52,36 +63,20 @@ class ChatClientActor(serverpath: String, id: String) extends Actor {
 
   	def receive = {
 
-  		case Register => {
-  			server ! RegisterClientMessage(self)
-  		}
-
       case ChatMessage(message) =>
         println(s"$sender: $message")
 
-  		case ChatInfo(msg) => {
+  		case ChatInfo(msg) =>
   			println ("INFO: ["+ msg +"]")
-  		}
 
-  		case Broadcast(msg) => {
+  		case Broadcast(msg) =>
   			server ! ChatMessage(msg)
-  		}
 
-  		case RegisteredClients => {
+      case PrivateMessage(sender, message) =>
+        println(s"- $sender: $message")
 
-  			server ! RegisteredClients
-  		}
-
-  		case RegisteredClientList(list) => {
-  			for (x <- list)
-  			{
-                println(x)
-            }
-        }
-
-      case Disconnect => {
-        server ! Unregister(self)
-      }
+      case RegisteredClientList(list) =>
+        for (x <- list) println(x)
 
       case _ => println("Client Received something")
    }
