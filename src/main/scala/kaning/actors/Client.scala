@@ -14,7 +14,7 @@ object ChatClientApplication {
 		println("Start Akka Chat Client Actor") 
 		print ("identify yourself: ")
 		val identity = readLine()
-		val system = ActorSystem("ChatServer", ConfigFactory.load.getConfig("chatclient"))
+		val system = ActorSystem("AkkaChat", ConfigFactory.load.getConfig("chatclient"))
     val serverAddress = system.settings.config.getString("actor-chat.server.address")
     val serverPort = system.settings.config.getString("actor-chat.server.port")
 		val remotePath = s"akka.tcp://ChatServerApplication@$serverAddress:$serverPort/user/chatserver"
