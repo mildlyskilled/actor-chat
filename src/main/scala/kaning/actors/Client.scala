@@ -1,12 +1,18 @@
 package kaning.actors
 
-import akka.actor.{Actor, Props, ActorSystem, ActorRef}
-import akka.actor.Identify
-import akka.actor.ActorIdentity
+import akka.actor._
 import kaning.messages._
 import kaning.actors._
 import scala.concurrent.duration._
 import com.typesafe.config.ConfigFactory
+import kaning.messages.Unregister
+import kaning.messages.RegisteredClientList
+import kaning.messages.ChatMessage
+import kaning.messages.RegisterClientMessage
+import kaning.messages.ChatInfo
+import kaning.messages.PrivateMessage
+import kaning.messages.RegisteredClients
+import kaning.messages.Broadcast
 
 object ChatClientApplication {
 
@@ -23,7 +29,7 @@ object ChatClientApplication {
 
     val server = system.actorSelection(remotePath)
 
-    val client = system.actorOf(Props(classOf[ChatClientActor], remotePath, identity), name = identity)
+    val client = system.actorOf(Props(classOf[ChatClientActor], server, identity), name = identity)
         var chatmessage = ""
         var cursor = true
         while (cursor) {
@@ -55,10 +61,10 @@ object ChatClientApplication {
     }
 }
 
-class ChatClientActor(serverpath: String, id: String) extends Actor {
+class ChatClientActor(server: ActorSelection, id: String) extends Actor {
 
   	//context.setReceiveTimeout(3.seconds)
-  	val server = context.actorSelection(serverpath)
+//  	val server = context.actorSelection(serverpath)
 
 
   	def receive = {
@@ -72,7 +78,7 @@ class ChatClientActor(serverpath: String, id: String) extends Actor {
   		case Broadcast(msg) =>
   			server ! ChatMessage(msg)
 
-      case PrivateMessage(sender, message) =>
+      case PrivateMessage(_, message) =>
         println(s"- $sender: $message")
 
       case RegisteredClientList(list) =>
