@@ -17,7 +17,7 @@ object ChatClientApplication {
 		val system = ActorSystem("AkkaChat", ConfigFactory.load.getConfig("chatclient"))
     val serverAddress = system.settings.config.getString("actor-chat.server.address")
     val serverPort = system.settings.config.getString("actor-chat.server.port")
-		val remotePath = s"akka.tcp://ChatServerApplication@$serverAddress:$serverPort/user/chatserver"
+		val remotePath = s"akka.tcp://AkkaChat@$serverAddress:$serverPort/user/chatserver"
 		val client = system.actorOf(Props(classOf[ChatClientActor], remotePath, identity), name = identity)
         var chatmessage = ""
         var cursor = true
