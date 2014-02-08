@@ -1,9 +1,6 @@
 package kaning.actors
 
 import akka.actor._
-import kaning.messages._
-import kaning.actors._
-import scala.concurrent.duration._
 import com.typesafe.config.ConfigFactory
 import kaning.messages.Unregister
 import kaning.messages.RegisteredClientList
@@ -12,8 +9,6 @@ import kaning.messages.RegisterClientMessage
 import kaning.messages.ChatInfo
 import kaning.messages.PrivateMessage
 import kaning.messages.RegisteredClients
-import kaning.messages.Broadcast
-import scala.annotation.tailrec
 
 object ChatClientApplication {
 
@@ -44,7 +39,7 @@ object ChatClientApplication {
           server.tell(PrivateMessage(target, msg), client)
 
         case _ =>
-          server.tell(Broadcast(msg), client)
+          server.tell(ChatMessage(msg), client)
       }
     }
 
