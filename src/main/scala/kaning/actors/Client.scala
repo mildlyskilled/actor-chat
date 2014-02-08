@@ -56,6 +56,9 @@ class ChatClientActor(serverpath: String, id: String) extends Actor {
   			server ! RegisterClientMessage(self)
   		}
 
+      case ChatMessage(message) =>
+        println(s"$sender: $message")
+
   		case ChatInfo(msg) => {
   			println ("INFO: ["+ msg +"]")
   		}
@@ -66,7 +69,7 @@ class ChatClientActor(serverpath: String, id: String) extends Actor {
 
   		case RegisteredClients => {
 
-  			server ! RegisteredClients;
+  			server ! RegisteredClients
   		}
 
   		case RegisteredClientList(list) => {
@@ -76,10 +79,11 @@ class ChatClientActor(serverpath: String, id: String) extends Actor {
             }
         }
 
-        case Disconnect => {
-            server ! Unregister(self)
-        }
-        case _ => println("Client Received something")
+      case Disconnect => {
+        server ! Unregister(self)
+      }
+
+      case _ => println("Client Received something")
    }
 
  }
