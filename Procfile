@@ -1,1 +1,1 @@
-web: target/start kaning.actors.ChatServerApplication
+web: target/start kaning.actors.ChatServerApplication --http.port=$PORT
