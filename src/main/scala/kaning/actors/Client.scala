@@ -33,8 +33,11 @@ object ChatClientApplication {
           server.tell(RegisteredClients, client)
 
         case "/join" =>
-          server.tell(RegisterClientMessage(client), client)
+          server.tell(RegisterClientMessage(client, identity), client)
 
+        case "/leave" => 
+          server.tell(Unregister(identity), client)
+          
         case privateMessageRegex(target, msg) =>
           server.tell(PrivateMessage(target, msg), client)
 
@@ -44,7 +47,7 @@ object ChatClientApplication {
     }
 
     println("Exiting...")
-    server.tell(Unregister, client)
+    server.tell(Unregister(identity), client)
   }
 }
 
@@ -53,7 +56,7 @@ class ChatClientActor(server: ActorSelection, id: String) extends Actor {
     def receive = {
 
       case ChatMessage(message) =>
-        println(s"$sender: $message")
+        println(s"${sender.path.name}: $message")
 
       case ChatInfo(msg) =>
         println ("INFO: ["+ msg +"]")
