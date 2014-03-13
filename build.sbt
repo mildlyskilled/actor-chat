@@ -1,7 +1,3 @@
-import com.typesafe.startscript.StartScriptPlugin
-
-seq(StartScriptPlugin.startScriptForClassesSettings: _*)
-
 name := "akka-chat"
 
 version := "1.0"
@@ -15,6 +11,7 @@ scalaVersion := "2.10.2"
 libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-actor" % "2.2.3",
   "com.typesafe.akka" %% "akka-testkit" % "2.2.3",
-  "com.typesafe.akka" %% "akka-remote" % "2.2.3"
+  "com.typesafe.akka" %% "akka-remote" % "2.2.3",
+  "org.scala-lang" % "jline" % "2.11.0-M3"
 )
 
