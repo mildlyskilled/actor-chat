@@ -1,6 +1,7 @@
 package kaning.actors
 
 import akka.actor._
+import akka.remote.RemoteScope
 import com.typesafe.config.ConfigFactory
 import kaning.messages.Unregister
 import kaning.messages.RegisteredClientList
@@ -10,22 +11,34 @@ import kaning.messages.ChatInfo
 import kaning.messages.PrivateMessage
 import kaning.messages.RegisteredClients
 import scala.tools.jline.console.ConsoleReader
+import java.net.{NetworkInterface, InetAddress}
+import scala.collection.JavaConversions._
 
 object ChatClientApplication {
 
   def main(args:Array[String]) {
     println("Start Akka Chat Client Actor")
-	val identity = new ConsoleReader().readLine("identify yourself: ")
+
+     // construct client with current machine's IP address instead of using the config value
+    val interfaces = new JEnumerationWrapper(NetworkInterface.getNetworkInterfaces).toList.filter(!_.isLoopback).filter(_.isUp)
+    // Ideally this should give a list of
+    val ipAddress = interfaces.head.getInterfaceAddresses.filter(_.getBroadcast != null).head.getAddress.getHostAddress
+    val clientAddress = Address("akka.tcp", "AkkaChat", ipAddress, 2552)
+
+
+    val identity = new ConsoleReader().readLine("identify yourself: ")
     val system = ActorSystem("AkkaChat", ConfigFactory.load.getConfig("chatclient"))
     val serverAddress = system.settings.config.getString("actor-chat.server.address")
     val serverPort = system.settings.config.getString("actor-chat.server.port")
-    val remotePath = s"akka.tcp://AkkaChat@$serverAddress:$serverPort/user/chatserver"
+    val serverPath = s"akka.tcp://AkkaChat@$serverAddress:$serverPort/user/chatserver"
     val privateMessageRegex = """^@([^\s]+) (.*)$""".r
-    val server = system.actorSelection(remotePath)
-    val client = system.actorOf(Props(classOf[ChatClientActor], server, identity), name = identity)
+    val server = system.actorSelection(serverPath)
+
+    val client = system.actorOf(Props(classOf[ChatClientActor], server, identity).withDeploy(Deploy(scope = RemoteScope(clientAddress))), name = identity)
 	
 	print("Client constructed: ")
 	println(client)
+
     Iterator.continually(new ConsoleReader().readLine("> ")).takeWhile(_ != "/exit").foreach { msg =>
       msg match {
         case "/list" =>
@@ -51,7 +64,7 @@ object ChatClientApplication {
   }
 }
 
-class ChatClientActor(server: ActorSelection, id: String) extends Actor {
+class ChatClientActor extends Actor {
 
     def receive = {
 
